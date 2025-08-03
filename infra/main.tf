@@ -78,7 +78,7 @@ resource "google_compute_instance" "api_instance" {
     "ssh-keys" : "kaio:ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOyZoMaDnwmACxedrcpFD5i7qOJzAtKCqT4RGQ/4glX3 kaiovbraga2001@gmail.com"
   }
 
-  metadata_startup_script = file("./https-startup.sh")
+  metadata_startup_script = file("./setup.sh")
 
   boot_disk {
     initialize_params {
@@ -103,3 +103,90 @@ resource "google_compute_instance" "api_instance" {
 }
 
 
+# DB
+resource "google_compute_global_address" "private_ip_alloc" {
+  name          = "kys-db-private-ip-range"
+  purpose       = "VPC_PEERING"
+  address_type  = "INTERNAL"
+  prefix_length = 16
+  network       = google_compute_network.vpc_network.id
+}
+
+resource "google_service_networking_connection" "private_vpc_connection" {
+  network                 = google_compute_network.vpc_network.id
+  service                 = "servicenetworking.googleapis.com"
+  reserved_peering_ranges = [google_compute_global_address.private_ip_alloc.name]
+}
+
+resource "google_sql_database" "db" {
+  name     = "kys-db"
+  instance = google_sql_database_instance.db_instance.name
+}
+
+resource "google_sql_database_instance" "db_instance" {
+  depends_on = [google_service_networking_connection.private_vpc_connection]
+
+  name             = "kys-db-instance"
+  region           = "us-central1"
+  database_version = "MYSQL_8_0"
+  settings {
+    # tier = "db-g1-small"
+    tier = "db-f1-micro"
+    ip_configuration {
+      ipv4_enabled                                  = false
+      private_network                               = google_compute_network.vpc_network.self_link
+      enable_private_path_for_google_cloud_services = true
+    }
+  }
+
+  deletion_protection = false
+}
+
+
+# DB Admin User
+resource "google_secret_manager_secret" "db_admin_password" {
+  secret_id = "kys-db-admin-password"
+
+  labels = {
+    label = "my-label"
+  }
+
+  replication {
+    auto {}
+  }
+}
+
+resource "google_secret_manager_secret_version" "db_admin_password_version" {
+  secret      = google_secret_manager_secret.db_admin_password.id
+  secret_data = file("./db_admin_password.txt")
+}
+
+resource "google_sql_user" "db_admin_user" {
+  instance = google_sql_database_instance.db_instance.name
+  name     = "admin"
+  password = google_secret_manager_secret_version.db_admin_password_version.secret_data
+}
+
+# DB API User
+resource "google_secret_manager_secret" "db_api_password" {
+  secret_id = "kys-db-api-password"
+
+  labels = {
+    label = "my-label"
+  }
+
+  replication {
+    auto {}
+  }
+}
+
+resource "google_secret_manager_secret_version" "db_api_password_version" {
+  secret      = google_secret_manager_secret.db_api_password.id
+  secret_data = file("./db_api_password.txt")
+}
+
+resource "google_sql_user" "db_api_user" {
+  instance = google_sql_database_instance.db_instance.name
+  name     = "kys-api"
+  password = google_secret_manager_secret_version.db_api_password_version.secret_data
+}
