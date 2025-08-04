@@ -1,5 +1,7 @@
 .terraform
 terraform.tfstate
 terraform.tfstate.backup
+terraform-debug.log
+
 db_admin_password.txt
 db_api_password.txt
