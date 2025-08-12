@@ -49,3 +49,5 @@ steps:
           sudo systemctl enable node-api && \
           sudo systemctl start node-api \
         "
+options:
+  logging: CLOUD_LOGGING_ONLY
