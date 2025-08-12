@@ -1,7 +1,51 @@
 steps:
-  - name: 'gcr.io/cloud-builders/echo'
-    entrypoint: bash
-    args: ['Hello', 'World!']
+  # Optional: Install dependencies in Cloud Build (can skip if you want to install on VM)
+  - name: 'docker.io/library/node:20'
+    args: ['npm', 'install']
 
-options:
-  logging: CLOUD_LOGGING_ONLY
+  # Copy code to VM
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: [
+        'compute',
+        'scp',
+        '--recurse',
+        '.', # workspace contents
+        'kys-build-service-account@kys-api-instance:/home/USER/api',
+        '--zone=ZONE',
+      ]
+
+  # SSH into VM: install deps, create systemd service, enable & start
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        gcloud compute ssh kys-build-service-account@kys-api-instance --zone=ZONE --command "\
+          set -e; \
+          sudo apt-get update && sudo apt-get install -y nodejs npm; \
+          cd /home/kys-build-service-account/api && \
+          npm install && \
+          npm run build && \
+          # Create systemd service
+          sudo bash -c 'cat > /etc/systemd/system/node-api.service <<EOF
+          [Unit]
+          Description=Node.js API
+          After=network.target
+
+          [Service]
+          WorkingDirectory=/home/kys-build-service-account/api
+          ExecStart=/usr/bin/npm start
+          Restart=always
+          User=kys-build-service-account
+          Environment=NODE_ENV=production
+          StandardOutput=syslog
+          StandardError=syslog
+          SyslogIdentifier=node-api
+
+          [Install]
+          WantedBy=multi-user.target
+          EOF' && \
+          sudo systemctl daemon-reload && \
+          sudo systemctl enable node-api && \
+          sudo systemctl start node-api \
+        "
