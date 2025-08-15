@@ -19,7 +19,7 @@ steps:
         gcloud compute ssh ${_SERVICE_ACCOUNT}@${_INSTANCE_NAME} \
         --zone=${_DEFAULT_REGION}-c \
         --tunnel-through-iap \
-        --strict-host-key-checking=no \
+        --ssh-flag="-o StrictHostKeyChecking=no" \
         --plain \
         --command="
           sudo apt-get update -y
