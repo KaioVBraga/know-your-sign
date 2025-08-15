@@ -10,7 +10,7 @@ steps:
       - 'api'
 
   - name: 'gcr.io/cloud-builders/gcloud'
-    id: 'Update VM'
+    id: 'Update VM (1)'
     entrypoint: '/bin/bash'
     args:
       - '-c'
@@ -22,18 +22,11 @@ steps:
         --strict-host-key-checking=no \
         --plain \
         --command="
-          # Update the package list
           sudo apt-get update -y
-
-          # Install Docker and its dependencies
           sudo apt-get install -y docker.io
 
-          # Add the user to the docker group so you can run docker without sudo
-          # Note: This might not be necessary if you're already running as root,
-          # but it's good practice. Replace `sa_<username>` with the actual user if needed.
           sudo usermod -aG docker ${_SERVICE_ACCOUNT}
 
-          # Verify Docker is installed and running
           sudo systemctl start docker
           sudo systemctl enable docker
 
