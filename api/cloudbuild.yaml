@@ -14,7 +14,7 @@ images: ['${_IMAGE_NAME}']
 substitutions:
   _DEFAULT_REGION: us-east1
   _ARTIFACT_REPO: kys
-  _IMAGE_NAME: ${_DEFAULT_REGION}-docker.pkg.dev/{$PROJECT_ID}/${_ARTIFACT_REPO}/kys-api
+  _IMAGE_NAME: ${_DEFAULT_REGION}-docker.pkg.dev/know-your-sign/${_ARTIFACT_REPO}/kys-api
 
 options:
   dynamicSubstitutions: true
