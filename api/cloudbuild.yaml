@@ -9,43 +9,43 @@ steps:
       - '${_IMAGE_NAME}:latest'
       - 'api'
 
-  - name: 'gcr.io/cloud-builders/gcloud'
-    id: 'Update VM (1)'
-    entrypoint: '/bin/bash'
-    args:
-      - '-c'
-      - |
-        # Connect to the VM and run a series of commands
-        gcloud compute ssh ${_SERVICE_ACCOUNT}@${_INSTANCE_NAME} \
-        --zone=${_DEFAULT_REGION}-c \
-        --tunnel-through-iap \
-        --ssh-flag="-o StrictHostKeyChecking=no" \
-        --plain \
-        --command="
-          sudo apt-get update -y
-          sudo apt-get install -y docker.io
+  # - name: 'gcr.io/cloud-builders/gcloud'
+  #   id: 'Update VM (1)'
+  #   entrypoint: '/bin/bash'
+  #   args:
+  #     - '-c'
+  #     - |
+  #       # Connect to the VM and run a series of commands
+  #       gcloud compute ssh ${_SERVICE_ACCOUNT}@${_INSTANCE_NAME} \
+  #       --zone=${_DEFAULT_REGION}-c \
+  #       --tunnel-through-iap \
+  #       --ssh-flag="-o StrictHostKeyChecking=no" \
+  #       --plain \
+  #       --command="
+  #         sudo apt-get update -y
+  #         sudo apt-get install -y docker.io
 
-          sudo usermod -aG docker ${_SERVICE_ACCOUNT}
+  #         sudo usermod -aG docker ${_SERVICE_ACCOUNT}
 
-          sudo systemctl start docker
-          sudo systemctl enable docker
+  #         sudo systemctl start docker
+  #         sudo systemctl enable docker
 
-          # Now, run your original Docker commands
-          docker stop kys-api || true && docker rm kys-api || true && docker pull ${_IMAGE_NAME}:latest && docker run -d --name=kys-api -p 80:8080 ${_IMAGE_NAME}:latest
-        "
+  #         # Now, run your original Docker commands
+  #         docker stop kys-api || true && docker rm kys-api || true && docker pull ${_IMAGE_NAME}:latest && docker run -d --name=kys-api -p 80:8080 ${_IMAGE_NAME}:latest
+  #       "
 
   # This step deploys the application to the Compute Engine VM.
   # It uses the 'gcloud' builder to SSH into the VM and execute commands.
   # The commands stop the old container, remove it, and start a new one with the latest image.
-  # - id: 'Deploy to Compute Engine'
-  #   name: 'gcr.io/cloud-builders/gcloud'
-  #   args:
-  #     - 'compute'
-  #     - 'ssh'
-  #     - '${_SERVICE_ACCOUNT}@${_INSTANCE_NAME}'
-  #     - '--tunnel-through-iap'
-  #     - '--zone=${_DEFAULT_REGION}-c' # Assumes your VM is in zone 'a' of your default region.
-  #     - '--command=docker stop kys-api || true && docker rm kys-api || true && docker pull ${_IMAGE_NAME}:latest && docker run -d --name=kys-api -p 80:8080 ${_IMAGE_NAME}:latest'
+  - id: 'Deploy to Compute Engine'
+    name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'compute'
+      - 'ssh'
+      - '${_SERVICE_ACCOUNT}@${_INSTANCE_NAME}'
+      - '--tunnel-through-iap'
+      - '--zone=${_DEFAULT_REGION}-c' # Assumes your VM is in zone 'a' of your default region.
+      - '--command=docker stop kys-api || true && docker rm kys-api || true && docker pull ${_IMAGE_NAME}:latest && docker run -d --name=kys-api -p 80:8080 ${_IMAGE_NAME}:latest'
 
 images: ['${_IMAGE_NAME}']
 
