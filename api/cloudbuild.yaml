@@ -19,6 +19,7 @@ steps:
         gcloud compute ssh ${_SERVICE_ACCOUNT}@${_INSTANCE_NAME} \
         --zone=${_DEFAULT_REGION}-c \
         --tunnel-through-iap \
+        --strict-host-key-checking=no \
         --plain \
         --command="
           # Update the package list
