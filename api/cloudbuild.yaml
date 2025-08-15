@@ -7,7 +7,7 @@ steps:
       # - '${_IMAGE_NAME}:${_VERSION}'
       # - '-t'
       - '${_IMAGE_NAME}:latest'
-      - '.'
+      - 'api'
 
 images: ['${_IMAGE_NAME}']
 
