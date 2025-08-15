@@ -4,8 +4,8 @@ steps:
     args:
       - 'build'
       - '-t'
-      - '${_IMAGE_NAME}:${_VERSION}'
-      - '-t'
+      # - '${_IMAGE_NAME}:${_VERSION}'
+      # - '-t'
       - '${_IMAGE_NAME}:latest'
       - '.'
 
