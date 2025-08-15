@@ -18,7 +18,7 @@ steps:
       - 'compute'
       - 'ssh'
       - '${_INSTANCE_NAME}'
-      - '--zone=${_DEFAULT_REGION}-a' # Assumes your VM is in zone 'a' of your default region.
+      - '--zone=${_DEFAULT_REGION}-c' # Assumes your VM is in zone 'a' of your default region.
       - '--command=docker stop kys-api || true && docker rm kys-api || true && docker pull ${_IMAGE_NAME}:latest && docker run -d --name=kys-api -p 80:8080 ${_IMAGE_NAME}:latest'
 
 images: ['${_IMAGE_NAME}']
