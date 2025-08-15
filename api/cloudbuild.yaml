@@ -16,8 +16,8 @@ steps:
       - '-c'
       - |
         # Connect to the VM and run a series of commands
-        gcloud compute ssh sa_<your-service-account-username>@<your-instance-name> \
-        --zone=<your-zone> \
+        gcloud compute ssh ${_SERVICE_ACCOUNT}@${_INSTANCE_NAME} \
+        --zone=${_DEFAULT_REGION}-c \
         --tunnel-through-iap \
         --plain \
         --command="
@@ -30,28 +30,28 @@ steps:
           # Add the user to the docker group so you can run docker without sudo
           # Note: This might not be necessary if you're already running as root,
           # but it's good practice. Replace `sa_<username>` with the actual user if needed.
-          sudo usermod -aG docker sa_<your-service-account-username>
+          sudo usermod -aG docker ${_SERVICE_ACCOUNT}
 
           # Verify Docker is installed and running
           sudo systemctl start docker
           sudo systemctl enable docker
 
           # Now, run your original Docker commands
-          docker <your-docker-commands-here>
+          docker stop kys-api || true && docker rm kys-api || true && docker pull ${_IMAGE_NAME}:latest && docker run -d --name=kys-api -p 80:8080 ${_IMAGE_NAME}:latest
         "
 
   # This step deploys the application to the Compute Engine VM.
   # It uses the 'gcloud' builder to SSH into the VM and execute commands.
   # The commands stop the old container, remove it, and start a new one with the latest image.
-  - id: 'Deploy to Compute Engine'
-    name: 'gcr.io/cloud-builders/gcloud'
-    args:
-      - 'compute'
-      - 'ssh'
-      - '${_SERVICE_ACCOUNT}@${_INSTANCE_NAME}'
-      - '--tunnel-through-iap'
-      - '--zone=${_DEFAULT_REGION}-c' # Assumes your VM is in zone 'a' of your default region.
-      - '--command=docker stop kys-api || true && docker rm kys-api || true && docker pull ${_IMAGE_NAME}:latest && docker run -d --name=kys-api -p 80:8080 ${_IMAGE_NAME}:latest'
+  # - id: 'Deploy to Compute Engine'
+  #   name: 'gcr.io/cloud-builders/gcloud'
+  #   args:
+  #     - 'compute'
+  #     - 'ssh'
+  #     - '${_SERVICE_ACCOUNT}@${_INSTANCE_NAME}'
+  #     - '--tunnel-through-iap'
+  #     - '--zone=${_DEFAULT_REGION}-c' # Assumes your VM is in zone 'a' of your default region.
+  #     - '--command=docker stop kys-api || true && docker rm kys-api || true && docker pull ${_IMAGE_NAME}:latest && docker run -d --name=kys-api -p 80:8080 ${_IMAGE_NAME}:latest'
 
 images: ['${_IMAGE_NAME}']
 
