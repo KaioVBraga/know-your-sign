@@ -12,7 +12,7 @@ steps:
 images: ['${_IMAGE_NAME}']
 
 substitutions:
-  _DEFAULT_REGION: us-east1
+  _DEFAULT_REGION: us-central1
   _ARTIFACT_REPO: kys
   _IMAGE_NAME: ${_DEFAULT_REGION}-docker.pkg.dev/know-your-sign/${_ARTIFACT_REPO}/kys-api
 
