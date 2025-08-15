@@ -23,31 +23,39 @@ steps:
         gcloud compute ssh kys-build-service-account@kys-api-instance --zone=ZONE --command "\
           set -e; \
           sudo apt-get update && sudo apt-get install -y nodejs npm; \
-          cd /home/kys-build-service-account/api && \
-          npm install && \
-          npm run build && \
-          # Create systemd service
-          sudo bash -c 'cat > /etc/systemd/system/node-api.service <<EOF
-          [Unit]
-          Description=Node.js API
-          After=network.target
-
-          [Service]
-          WorkingDirectory=/home/kys-build-service-account/api
-          ExecStart=/usr/bin/npm start
-          Restart=always
-          User=kys-build-service-account
-          Environment=NODE_ENV=production
-          StandardOutput=syslog
-          StandardError=syslog
-          SyslogIdentifier=node-api
-
-          [Install]
-          WantedBy=multi-user.target
-          EOF' && \
-          sudo systemctl daemon-reload && \
-          sudo systemctl enable node-api && \
-          sudo systemctl start node-api \
+          cd /home/kys-build-service-account/api \
         "
+    # args:
+    #   - -c
+    #   - |
+    #     gcloud compute ssh kys-build-service-account@kys-api-instance --zone=ZONE --command "\
+    #       set -e; \
+    #       sudo apt-get update && sudo apt-get install -y nodejs npm; \
+    #       cd /home/kys-build-service-account/api && \
+    #       npm install && \
+    #       npm run build && \
+    #       # Create systemd service
+    #       sudo bash -c 'cat > /etc/systemd/system/node-api.service <<EOF
+    #       [Unit]
+    #       Description=Node.js API
+    #       After=network.target
+
+    #       [Service]
+    #       WorkingDirectory=/home/kys-build-service-account/api
+    #       ExecStart=/usr/bin/npm start
+    #       Restart=always
+    #       User=kys-build-service-account
+    #       Environment=NODE_ENV=production
+    #       StandardOutput=syslog
+    #       StandardError=syslog
+    #       SyslogIdentifier=node-api
+
+    #       [Install]
+    #       WantedBy=multi-user.target
+    #       EOF' && \
+    #       sudo systemctl daemon-reload && \
+    #       sudo systemctl enable node-api && \
+    #       sudo systemctl start node-api \
+    #     "
 options:
   logging: CLOUD_LOGGING_ONLY
