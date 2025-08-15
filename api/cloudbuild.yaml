@@ -17,7 +17,7 @@ steps:
     args:
       - 'compute'
       - 'ssh'
-      - '${_INSTANCE_NAME}'
+      - '${_SERVICE_ACCOUNT}@${_INSTANCE_NAME}'
       - '--tunnel-through-iap'
       - '--zone=${_DEFAULT_REGION}-c' # Assumes your VM is in zone 'a' of your default region.
       - '--command=docker stop kys-api || true && docker rm kys-api || true && docker pull ${_IMAGE_NAME}:latest && docker run -d --name=kys-api -p 80:8080 ${_IMAGE_NAME}:latest'
@@ -25,6 +25,7 @@ steps:
 images: ['${_IMAGE_NAME}']
 
 substitutions:
+  _SERVICE_ACCOUNT: kys-build-service-account
   _INSTANCE_NAME: kys-api-instance
   _DEFAULT_REGION: us-central1
   _ARTIFACT_REPO: kys
