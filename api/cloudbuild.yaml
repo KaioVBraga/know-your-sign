@@ -9,9 +9,22 @@ steps:
       - '${_IMAGE_NAME}:latest'
       - 'api'
 
+  # This step deploys the application to the Compute Engine VM.
+  # It uses the 'gcloud' builder to SSH into the VM and execute commands.
+  # The commands stop the old container, remove it, and start a new one with the latest image.
+  - id: 'Deploy to Compute Engine'
+    name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'compute'
+      - 'ssh'
+      - '${_INSTANCE_NAME}'
+      - '--zone=${_DEFAULT_REGION}-a' # Assumes your VM is in zone 'a' of your default region.
+      - '--command=docker stop kys-api || true && docker rm kys-api || true && docker pull ${_IMAGE_NAME}:latest && docker run -d --name=kys-api -p 80:8080 ${_IMAGE_NAME}:latest'
+
 images: ['${_IMAGE_NAME}']
 
 substitutions:
+  _INSTANCE_NAME: kys-api-instance
   _DEFAULT_REGION: us-central1
   _ARTIFACT_REPO: kys
   _IMAGE_NAME: ${_DEFAULT_REGION}-docker.pkg.dev/know-your-sign/${_ARTIFACT_REPO}/kys-api
