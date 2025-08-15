@@ -9,6 +9,37 @@ steps:
       - '${_IMAGE_NAME}:latest'
       - 'api'
 
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: 'Update VM'
+    entrypoint: '/bin/bash'
+    args:
+      - '-c'
+      - |
+        # Connect to the VM and run a series of commands
+        gcloud compute ssh sa_<your-service-account-username>@<your-instance-name> \
+        --zone=<your-zone> \
+        --tunnel-through-iap \
+        --plain \
+        --command="
+          # Update the package list
+          sudo apt-get update -y
+
+          # Install Docker and its dependencies
+          sudo apt-get install -y docker.io
+
+          # Add the user to the docker group so you can run docker without sudo
+          # Note: This might not be necessary if you're already running as root,
+          # but it's good practice. Replace `sa_<username>` with the actual user if needed.
+          sudo usermod -aG docker sa_<your-service-account-username>
+
+          # Verify Docker is installed and running
+          sudo systemctl start docker
+          sudo systemctl enable docker
+
+          # Now, run your original Docker commands
+          docker <your-docker-commands-here>
+        "
+
   # This step deploys the application to the Compute Engine VM.
   # It uses the 'gcloud' builder to SSH into the VM and execute commands.
   # The commands stop the old container, remove it, and start a new one with the latest image.
